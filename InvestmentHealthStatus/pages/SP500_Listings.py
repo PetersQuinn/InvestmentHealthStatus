@@ -1,11 +1,4 @@
-from pathlib import Path
-
-# Ensure directory exists
-pages_path = Path("InvestmentHealthStatus/pages")
-pages_path.mkdir(parents=True, exist_ok=True)
-
-# Optimized SP500 content
-sp500_optimized = """import streamlit as st
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -64,8 +57,3 @@ ascending = st.radio("Sort order:", ["Ascending", "Descending"]) == "Ascending"
 df_sorted = df.sort_values(by=sort_by, ascending=ascending)
 
 st.dataframe(df_sorted.reset_index(drop=True))
-"""
-
-# Write file
-(pages_path / "SP500_Listings.py").write_text(sp500_optimized, encoding="utf-8")
-print("SP500_Listings.py successfully written with caching and throttling.")
