@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 # ---------------------------
 # Utility functions
@@ -27,20 +28,31 @@ def calculate_metrics(hist, info):
     # PE Ratio (or use fallback if not available)
     pe_ratio = info.get('trailingPE', np.nan)
 
-    # Score (simple weighted score)
-    score = 100
-    score -= min(volatility, 30) * 1.5
-    score += 10 if pe_ratio and pe_ratio < 30 else 0
-    score += 5 if max_drawdown > -10 else 0
-    score = max(0, min(100, round(score)))
-
     return {
         'volatility': round(volatility, 2),
         'max_drawdown': round(max_drawdown, 2),
         'pe_ratio': pe_ratio,
-        'score': score
     }
 
+def compute_normalized_risk_score(volatility, drawdown, pe_ratio):
+    # Replace NaN PE with median-like value for normalization
+    if np.isnan(pe_ratio):
+        pe_ratio = 25.0
+
+    data = np.array([[volatility, abs(drawdown), pe_ratio]])
+    reference_data = np.array([
+        [15, 20, 25],  # Reference lower-risk example
+        [35, 60, 80]   # Reference higher-risk example
+    ])
+
+    scaler = StandardScaler()
+    scaler.fit(reference_data)
+    normalized = scaler.transform(data)[0]
+
+    z_score_total = normalized[0] + normalized[1] + normalized[2]  # Higher means riskier
+    normalized_risk_score = 100 - min(max((z_score_total * 10 + 50), 0), 100)
+
+    return round(normalized_risk_score)
 # ---------------------------
 # Streamlit App
 # ---------------------------
