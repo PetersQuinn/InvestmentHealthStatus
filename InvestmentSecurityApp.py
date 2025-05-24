@@ -11,7 +11,12 @@ def get_stock_data(ticker):
     try:
         stock = yf.Ticker(ticker)
         hist = stock.history(period="1y")
-        info = stock.info
+        try:
+            info = stock.info
+            if not info or 'trailingPE' not in info:
+                info = stock.fast_info
+        except:
+            info = stock.fast_info
         return hist, info
     except:
         return None, None
@@ -53,6 +58,7 @@ def compute_normalized_risk_score(volatility, drawdown, pe_ratio):
     normalized_risk_score = 100 - min(max((z_score_total * 10 + 50), 0), 100)
 
     return round(normalized_risk_score)
+
 # ---------------------------
 # Streamlit App
 # ---------------------------
@@ -64,16 +70,19 @@ ticker = st.text_input("Enter a stock ticker (e.g., AAPL, TSLA)", value="AAPL").
 
 # Data & Metrics
 hist, info = get_stock_data(ticker)
-if hist is not None and not hist.empty:
+if hist is not None and not hist.empty and info is not None:
     metrics = calculate_metrics(hist, info)
+    risk_score = compute_normalized_risk_score(
+        metrics['volatility'], metrics['max_drawdown'], metrics['pe_ratio']
+    )
 
     st.subheader(f"Results for {ticker}")
-    st.metric("📉 Volatility (1Y Std Dev)", f"{metrics['volatility']}%")
+    st.metric("📉 Annualized Volatility (1Y)", f"{metrics['volatility']}%")
     st.metric("🔻 Max Drawdown (1Y)", f"{metrics['max_drawdown']}%")
     st.metric("💰 P/E Ratio", f"{metrics['pe_ratio'] if not np.isnan(metrics['pe_ratio']) else 'N/A'}")
-    st.metric("✅ Risk Score", f"{metrics['score']} / 100")
+    st.metric("✅ Normalized Risk Score (Lower is Riskier)", f"{risk_score} / 100")
 
     st.line_chart(hist['Close'], use_container_width=True)
 
 else:
-    st.warning("Couldn't retrieve data for the given ticker. Please check the symbol.")
+    st.warning("Couldn't retrieve data for the given ticker. Please check the symbol or try again later.")
