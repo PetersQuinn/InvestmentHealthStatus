@@ -11,12 +11,11 @@ def get_stock_data(ticker):
     try:
         stock = yf.Ticker(ticker)
         hist = stock.history(period="1y")
-        try:
-            info = stock.info
-            if not info or 'trailingPE' not in info:
-                info = stock.fast_info
-        except:
-            info = stock.fast_info
+
+        info = getattr(stock, 'info', {})
+        if not isinstance(info, dict) or 'trailingPE' not in info:
+            info = getattr(stock, 'fast_info', {})
+
         return hist, info
     except:
         return None, None
