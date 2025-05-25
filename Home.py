@@ -72,8 +72,6 @@ if ticker.strip() == "":
 
 # Data & Metrics
 hist, info = get_stock_data(ticker)
-st.write("📦 Raw History:", hist)
-st.write("ℹ️ Raw Info:", info)
 
 if hist is not None and not hist.empty and info is not None:
     metrics = calculate_metrics(hist, info)

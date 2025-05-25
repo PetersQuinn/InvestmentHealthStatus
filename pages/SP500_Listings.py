@@ -56,10 +56,14 @@ df = pd.DataFrame(results, columns=[
 # Ensure Z-Score Risk is numeric
 df["Z-Score Risk"] = pd.to_numeric(df["Z-Score Risk"], errors="coerce")
 
-# Display-friendly formatting
-df_display = df.copy()
-df_display["Z-Score Risk"] = df_display["Z-Score Risk"].apply(
-    lambda x: "N/A" if pd.isna(x) else int(x)
+# Display with built-in formatting for sorting + N/A display
+st.dataframe(
+    df.reset_index(drop=True),
+    column_config={
+        "Z-Score Risk": st.column_config.NumberColumn(
+            "Z-Score Risk",
+            format="%d",
+            help="Normalized risk score where higher = less risky"
+        )
+    }
 )
-
-st.dataframe(df_display.reset_index(drop=True))
