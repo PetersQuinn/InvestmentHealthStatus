@@ -17,7 +17,8 @@ def get_stock_data(ticker):
             info = getattr(stock, 'fast_info', {})
 
         return hist, info
-    except:
+    except Exception as e:
+        st.error(f"Error retrieving data: {e}")
         return None, None
 
 def calculate_metrics(hist, info):

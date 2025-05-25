@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import time
+import os
 from sklearn.preprocessing import StandardScaler
 
 st.title("📘 S&P 500 Risk Score Listings (Optimized)")
@@ -36,22 +37,29 @@ def compute_risk_score(ticker):
     except:
         return np.nan, np.nan, np.nan
 
+csv_path = "sp500_risk_scores.csv"
 
-tickers, sp500 = get_sp500_tickers()
-progress = st.progress(0)
-results = []
+if os.path.exists(csv_path) and not st.button("🔄 Refresh SP500 Data"):
+    df = pd.read_csv(csv_path)
+    st.success("Loaded S&P 500 risk scores from cached CSV.")
+else:
+    tickers, sp500 = get_sp500_tickers()
+    progress = st.progress(0)
+    results = []
 
-for i, t in enumerate(tickers):
-    z_score, vol, dd = compute_risk_score(t)
-    results.append([t, z_score, vol, dd, np.nan, np.nan, np.nan])
-    if i % 10 == 0:
-        progress.progress(i / len(tickers))
-    time.sleep(0.2)
+    for i, t in enumerate(tickers):
+        z_score, vol, dd = compute_risk_score(t)
+        results.append([t, z_score, vol, dd, np.nan, np.nan, np.nan])
+        if i % 10 == 0:
+            progress.progress(i / len(tickers))
+        time.sleep(0.2)
 
-df = pd.DataFrame(results, columns=[
-    "Ticker", "Z-Score Risk", "Volatility", "Drawdown",
-    "VaR Risk", "Factor-Based", "ML Score"
-])
+    df = pd.DataFrame(results, columns=[
+        "Ticker", "Z-Score Risk", "Volatility", "Drawdown",
+        "VaR Risk", "Factor-Based", "ML Score"
+    ])
+    df.to_csv(csv_path, index=False)
+    st.success("Fetched and saved fresh S&P 500 data.")
 
 # Ensure Z-Score Risk is numeric
 df["Z-Score Risk"] = pd.to_numeric(df["Z-Score Risk"], errors="coerce")
