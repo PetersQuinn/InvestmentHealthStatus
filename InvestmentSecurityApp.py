@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 def get_stock_data(ticker):
     try:
         stock = yf.Ticker(ticker)
-        hist = stock.history(period="1y")
+        hist = stock.history(period="1y", interval="1d")
 
         info = getattr(stock, 'info', {})
         if not isinstance(info, dict) or 'trailingPE' not in info:
@@ -67,10 +67,14 @@ st.title("📈 Should I Invest? Dashboard")
 # Input
 ticker = st.text_input("Enter a stock ticker (e.g., AAPL, TSLA)", value="AAPL").upper()
 
+if ticker.strip() == "":
+    st.stop()  # Prevents running with an empty or invalid ticker
+
 # Data & Metrics
 hist, info = get_stock_data(ticker)
 st.write("📦 Raw History:", hist)
 st.write("ℹ️ Raw Info:", info)
+
 if hist is not None and not hist.empty and info is not None:
     metrics = calculate_metrics(hist, info)
     risk_score = compute_normalized_risk_score(
