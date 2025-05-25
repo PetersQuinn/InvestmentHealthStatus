@@ -59,6 +59,17 @@ st.dataframe(
             "Z-Score Risk",
             format="%d",
             help="Normalized risk score where higher = less risky"
+        ),
+        "VaR Risk": st.column_config.NumberColumn(
+            "VaR Risk",
+            format="%.2f",
+            help="Value-at-Risk-based score where higher = less risky"
+        ),
+        "Factor-Based": st.column_config.NumberColumn(
+            "Factor-Based",
+            format="%.2f",
+            help="Weighted factor score including beta, ROA, price-to-book, etc."
         )
     }
 )
+
